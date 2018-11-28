@@ -26,6 +26,11 @@
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+module const_one(out);
+output [31:0] out;
+assign out = 32'b00000001_00000000_00000000_00000000;
+endmodule
+
 module mult (A, B, Out);
 parameter DWIDTH=32;
 parameter frac=24;
@@ -42,4 +47,12 @@ parameter frac=24;
 input signed [DWIDTH-1:0] A, B;
 output signed [DWIDTH-1:0] Out;
 assign Out = A + B;
+endmodule
+
+module sub (A, B, Out);
+parameter DWIDTH=32;
+parameter frac=24;
+input signed [DWIDTH-1:0] A, B;
+output signed [DWIDTH-1:0] Out;
+assign Out = A - B;
 endmodule
