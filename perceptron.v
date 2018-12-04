@@ -27,10 +27,11 @@ hlayer3_1 x1(clk, reset, i1, i2, i3, o1);
 hlayer3_1 x2(clk, reset, i1, i2, i3, o2);
 endmodule
 
-module hlayer_2_2_backprop(clk, reset, i1, i2, o, delta_w_in1, delta_w_in2, delta_w_out, update);
+module hlayer_2_2_backprop(clk, reset, i1, i2, o, step, delta_w_in1, delta_w_in2, delta_w_out, update);
 input clk, reset;
 input [31:0] i1, i2;
 output [31:0] o;
+input [31:0] step;
 input [31:0] delta_w_in1, delta_w_in2;
 output [31:0] delta_w_out;
 input update;
@@ -49,9 +50,9 @@ wire [31:0] new_weight1;
 wire [31:0] new_weight2;
 wire [31:0] one;
 const_one cone(one);
-calc_new_weight calc_bias   (clk, layer.b, delta_w_out, o, one, new_bias);
-calc_new_weight calc_weight1(clk, layer.w1, delta_w_out, o, i1, new_weight1);
-calc_new_weight calc_weight2(clk, layer.w2, delta_w_out, o, i2, new_weight2);
+calc_new_weight calc_bias   (clk, layer.b,  step, delta_w_out, o, new_bias);
+calc_new_weight calc_weight1(clk, layer.w1, step, delta_w_out, o, new_weight1);
+calc_new_weight calc_weight2(clk, layer.w2, step, delta_w_out, o, new_weight2);
 always @ (negedge clk) begin
   if (update) begin
     layer.b  <= new_bias;
@@ -161,20 +162,28 @@ input [31:0] step;
 input [31:0] delta;
 input [31:0] out_neuron;
 output [31:0] new_weight;
-reg [31:0] new_weight;
-always @ (negedge clk) begin
-  new_weight <= old_weight - (step * delta * out_neuron);
-end
+// reg [31:0] new_weight;
+wire [31:0] delta_weight;
+wire [31:0] mult_out;
+mult mult1(step, delta, mult_out);
+mult mult2(mult_out, out_neuron, delta_weight);
+sub sub(old_weight, mult_out, new_weight);
+// always @ (negedge clk) begin
+//   new_weight <= old_weight - (step * delta * out_neuron);
+// end
 endmodule
 
 module sigmoid_derivation(clk, reset, in, out);
 input clk, reset;
 input [31:0] in;
 output [31:0] out;
-reg [31:0] out;
+// reg [31:0] out;
 wire [31:0] one;
+wire [31:0] sub_out;
 const_one cone(one);
-always @ (negedge clk) begin
-  out <= (one - in) * in;
-end
+sub  op1(one, in, sub_out);
+mult op2(sub_out, in, out);
+// always @ (negedge clk) begin
+//   out <= (one - in) * in;
+// end
 endmodule
