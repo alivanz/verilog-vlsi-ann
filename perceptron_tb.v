@@ -1,6 +1,7 @@
 `include "perceptron.v"
 
 module backprop_tb;
+integer NCLOCK;
 // common
 reg clk, reset;
 integer i, j;
@@ -32,6 +33,7 @@ reg [31:0] weight [11:0];
 reg [31:0] bias [4:0];
 // test vector
 wire [31:0] one;
+localparam sf = 2.0**-24.0;  // Q4.4 scaling factor is 2^-24
 const_one cone(one);
 initial begin
   update <= 0;
@@ -69,7 +71,9 @@ initial begin
   // #20;
   // clk <= 0;
   // #20;
-  for(i=0; i<10; i++) begin
+  NCLOCK = 17;
+  for(i=0; i<NCLOCK; i++) begin
+    update <= 0;
     clk <= 1;
     reset <= 0;
     #20;
@@ -81,6 +85,7 @@ initial begin
   $display("input_1=%h\tinput_2=%h", input_1, input_2);
   $display("o_1_1=%h\to_1_2=%h\to_1_3=%h", o_1_1, o_1_2, o_1_3);
   $display("o_2_1=%h\to_2_2=%h", o_2_1, o_2_2);
+  $display("o_2_1=%f\to_2_2=%f", $itor(o_2_1)*sf, $itor(o_2_2)*sf);
   $display("%h", layer_2_1.new_weight1);
   clk <= 1;
   update <= 1;
@@ -103,7 +108,8 @@ initial begin
   // $display("w_2_2_1=%h\tw_2_2_2=%h\tw_2_2_3=%h", layer_2_2.new_weight1, layer_2_2.new_weight2, layer_2_2.new_weight3);
 
   for(j=0; j<4; j++) begin
-  for(i=0; i<10; i++) begin
+  for(i=0; i<NCLOCK; i++) begin
+    update <= 0;
     clk <= 1;
     reset <= 0;
     #20;
@@ -119,11 +125,13 @@ initial begin
   $display("input_1=%h\tinput_2=%h", input_1, input_2);
   $display("o_1_1=%h\to_1_2=%h\to_1_3=%h", o_1_1, o_1_2, o_1_3);
   $display("o_2_1=%h\to_2_2=%h", o_2_1, o_2_2);
+  $display("o_2_1=%f\to_2_2=%f", $itor(o_2_1)*sf, $itor(o_2_2)*sf);
   $display("%h", layer_2_1.new_weight1);
   end
 
-  for(j=0; j<1000; j++) begin
-  for(i=0; i<10; i++) begin
+  for(j=0; j<10000; j++) begin
+  for(i=0; i<NCLOCK; i++) begin
+    update <= 0;
     clk <= 1;
     reset <= 0;
     #20;
@@ -140,6 +148,7 @@ initial begin
   $display("input_1=%h\tinput_2=%h", input_1, input_2);
   $display("o_1_1=%h\to_1_2=%h\to_1_3=%h", o_1_1, o_1_2, o_1_3);
   $display("o_2_1=%h\to_2_2=%h", o_2_1, o_2_2);
+  $display("o_2_1=%f\to_2_2=%f", $itor(o_2_1)*sf, $itor(o_2_2)*sf);
   $display("%h", layer_2_1.new_weight1);
   end
 endmodule
